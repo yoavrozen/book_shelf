@@ -11,15 +11,20 @@ class Addbook extends StatefulWidget {
 
 class _AddbookState extends State<Addbook> {
   Future<Book> postBook(Book book) async {
-    final String url = "http://testflutter-env.eba-5dbif6zm.us-east-1.elasticbeanstalk.com/insert/addBook";
-    final response = await http.post(Uri.parse(url),
+    final response = await http.post(
+        Uri.http(
+            'http://testflutter-env.eba-5dbif6zm.us-east-1.elasticbeanstalk.com/',
+            'insert/addBook'),
+        headers: {
+          'Content-Type': 'application/json;'
+        },
         body: {
           "title": {book.title},
           "authorFirstName": {book.authorFirstName},
           "authorLastName": {book.authorLastName},
           "rate": {book.rate.toString()}
         });
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       return Book.fromJson(jsonDecode(response.body));
     } else {
       throw Exception("Failed to post the book");
@@ -30,7 +35,7 @@ class _AddbookState extends State<Addbook> {
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
   Book newBook;
-  Book tempBook;
+  Future<Book> postedBook;
   int _dropdownvalue = 1;
   @override
   void dispose() {
@@ -124,20 +129,16 @@ class _AddbookState extends State<Addbook> {
                                     style: TextStyle(
                                       fontSize: 15,
                                     )),
-                                onPressed: () async {
-                                  newBook = new Book(
+                                onPressed: (){
+                                  setState((){
+                                    newBook = new Book(
                                       authorFirstName: firstNameController.text,
                                       authorLastName: lastNameController.text,
                                       rate: _dropdownvalue,
                                       title: titleController.text);
-                                  final Book createdbook =
-                                      await postBook(newBook);
-
-                                  setState(() {
-                                    tempBook = createdbook;
+                                  postedBook = postBook(newBook);
                                   });
-                                  return SizedBox(child:Text("${tempBook.title}"));
-                                  //Navigator.pushNamed(context, "/");
+                                  Navigator.pushNamed(context, "/");
                                 },
                               ),
                               TextButton(
